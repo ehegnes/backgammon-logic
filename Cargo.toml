@@ -1,0 +1,6 @@
+[package]
+name = "backgammon-logic"
+version = "0.1.0"
+authors = ["Eric Hegnes <eric.hegnes@gmail.com>"]
+
+[dependencies]
