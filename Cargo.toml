@@ -3,4 +3,8 @@ name = "backgammon-logic"
 version = "0.1.0"
 authors = ["Eric Hegnes <eric.hegnes@gmail.com>"]
 
+[lib]
+name = "backgammon_logic"
+crate-type = ["staticlib"]
+
 [dependencies]
