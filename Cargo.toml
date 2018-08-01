@@ -8,3 +8,4 @@ name = "backgammon_logic"
 crate-type = ["staticlib"]
 
 [dependencies]
+rand = "0.5"
