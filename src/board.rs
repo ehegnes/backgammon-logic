@@ -2,7 +2,7 @@ use std::fmt;
 use std::error::Error;
 use std::num::ParseIntError;
 
-const INITIAL_BOARD: _Board = [ 
+const INITIAL_BOARD: _Board = [
     0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 0, 0, 0, 0, 3, 0, 5, 0, 0, 0, 0, 0, 0
 ];
 const BOARD_SIZE: usize = 26;
@@ -44,18 +44,18 @@ impl Submove {
     /// assert_eq!(Submove::new("1/2"),    Submove { from: 1, to: 2 });
     /// ```
     pub fn new(s: String) -> Result<Submove, ParseIntError> {
-        let s: Vec<usize> =
+        let s: Vec<Result<usize, ParseIntError>> =
             s.split('/')
              .map(|x| match x.as_ref() {
-                 "bar" => BAR_IDX,
-                 _ => x.parse().unwrap(),
+                 "bar" => Ok(BAR_IDX),
+                 _ => x.parse(),
              })
              .collect();
 
-        Ok(Submove {
-            from: s[0],
-            to: s[1],
-        })
+        match &s.iter().fold(Ok(0), |acc, x| acc.and(x.clone())) {
+            Ok(_) => Ok(Submove { from: s[0].clone()?, to: s[1].clone()? }),
+            Err(e) => Err(e.clone()),
+        }
     }
 }
 
@@ -84,10 +84,6 @@ impl Move {
 mod tests {
     use super::*;
 
-    /*
-     * FIXME: Invalid test cases panic rather than returning a proper `Err`.
-     */
-
     #[test]
     fn parse_valid_submoves() {
         assert_eq!(Submove::new("bar/20".to_string()), Ok(Submove { from: 0, to: 20 }));
@@ -95,7 +91,6 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
     fn parse_invalid_submoves() {
         let xs = vec![
             "",
