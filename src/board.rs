@@ -1,17 +1,41 @@
-use std::fmt;
-use std::num::ParseIntError;
+use player::Player;
+use moves::{Move, Submove};
+use constants::*;
 
 const INITIAL_BOARD: _Board = [
-    0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 0, 0, 0, 0, 3, 0, 5, 0, 0, 0, 0, 0, 0
+    None, // BAR_IDX
+    Some((2, Player::White)), // 1
+    None, // 2
+    None, // 3
+    None, // 4
+    None, // 5
+    Some((5, Player::Black)), // 6
+    None, // 7
+    Some((3, Player:: Black)), // 8
+    None, // 9
+    None, // 10
+    None, // 11
+    Some((5, Player::White)), // 12
+    Some((5, Player::Black)), // 13
+    None, // 14
+    None, // 15
+    None, // 16
+    Some((3, Player::White)), // 17
+    None, // 18
+    Some((5, Player::White)), // 19
+    None, // 20
+    None, // 21
+    None, // 22
+    None, // 23
+    Some((2, Player::Black)), // 24
+    None, // BEAR_OFF_IDX
 ];
-const BOARD_SIZE: usize = 26;
-const BEAR_OFF_IDX: usize = 25;
-const BAR_IDX: usize = 0;
 
-type Position = usize;
-type Chequer = i8;
-type _Board = [Chequer; BOARD_SIZE];
+pub type Position = usize;
+type Point  = Option<(u8, Player)>;
+type _Board = [Point; BOARD_SIZE];
 
+#[derive(Clone, Copy, Default)]
 pub struct Board {
     board: _Board,
 }
@@ -26,64 +50,32 @@ impl Board {
     pub fn apply_move(&self, _m: Move) -> Board {
         Board::init()
     }
-}
 
-#[derive(Debug, PartialEq)]
-pub struct Submove {
-    from: Position,
-    to: Position,
-}
-
-impl Submove {
-    /// Constructs a new submove from the supplied string.
+    /// Check if a submove is legal. Returns `true` if valid or `false` if invalid.
     ///
-    /// # Examples
-    /// ```
-    /// assert_eq!(Submove::new("bar/20"), Submove { from: 25, to: 20 });
-    /// assert_eq!(Submove::new("1/2"),    Submove { from: 1, to: 2 });
-    /// ```
-    pub fn new(s: &str) -> Result<Submove, ParseIntError> {
-        let s: Result<Vec<usize>, ParseIntError> =
-            s.split('/')
-            .map(|x| match x.as_ref() {
-                "bar" => Ok(BAR_IDX),
-                _ => x.parse(),
-            })
-            .collect::<Vec<Result<_, _>>>()
-            .into_iter()
-            .collect();
+    /// Checks (in order):
+    /// - Ensure chequer exists
+    /// - Check chequer ownership
+    /// - Check bar
+    /// - Check not moving onto an opponent's point
+    pub fn validate_submove(&self, s: &Submove, p: Player) -> Result<bool, &str> {
+        // Ensure chequer exists
+        let from_chequer = match self.board[s.from] {
+            Some(v) => v,
+            None    => return Err("Chequer does not exist."),
+        };
 
-        match s {
-            Ok(_) => Ok(Submove { from: s.clone()?[0], to: s?[1] }),
-            Err(e) => Err(e),
-        }
-    }
-}
+        let bar_point = self.board[BAR_IDX];
+        let to_chequer = self.board[s.to];
 
-impl fmt::Display for Submove {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}/{}", self.from, self.to)
-    }
-}
-
-#[derive(Debug, PartialEq)]
-pub struct Move {
-    submoves: Vec<Submove>,
-}
-
-impl Move {
-    pub fn new(s: &str) -> Result<Move, ParseIntError> {
-        let s: Result<Vec<Submove>, ParseIntError> =
-            s.split_whitespace()
-             .map(|x| Submove::new(x))
-             .collect::<Vec<Result<Submove, ParseIntError>>>()
-             .into_iter()
-             .collect();
-
-        match s {
-            Ok(_) => Ok(Move { submoves: s.unwrap() }),
-            Err(e) => Err(e),
-        }
+        Ok([
+           // Check chequer ownership
+           from_chequer.1 == p,
+           // Check bar
+           bar_point.is_some() && (bar_point.unwrap().1 != p || s.from != BAR_IDX),
+           // Check not moving onto an opponent's point
+           to_chequer.is_some() && to_chequer.unwrap().1 == p.switch() && to_chequer.unwrap().0 <= 1,
+        ].iter().all(|x| *x))
     }
 }
 
@@ -92,53 +84,14 @@ mod tests {
     use super::*;
 
     #[test]
-    fn parse_valid_submoves() {
-        assert_eq!(Submove::new("bar/2"), Ok(Submove { from: 0, to: 2 }));
-        assert_eq!(Submove::new("1/2"),   Ok(Submove { from: 1, to: 2 }));
-    }
-
-    #[test]
-    fn parse_invalid_submoves() {
-        let xs = vec![
-            "",
-            "/",
-            "/0",
-            "ba/20",
-        ];
-
-        for s in xs.iter() {
-            assert!(Submove::new(s).is_err());
-        }
-    }
-
-    #[test]
-    fn parse_valid_moves() {
-        assert_eq!(
-            Move::new("1/2 3/4"),
-            Ok(Move { submoves: vec![
-                Submove { from: 1, to: 2 },
-                Submove { from: 3, to: 4 },
-            ]}));
-        assert_eq!(
-            Move::new("bar/2"),
-            Ok(Move { submoves: vec![
-                Submove { from: 0, to: 2 },
-            ]}));
-
-    }
-
-    #[test]
-    fn parse_invalid_moves() {
-        let xs = vec![
-            //"", // FIXME: Invalidate the empty string case
-            "asetuh",
-            "/ /",
-            "1/2 ba/20",
-            "10/12 2/",
-        ];
-
-        for s in xs.iter() {
-            assert!(Move::new(s).is_err());
-        }
+    fn check_invalid_submoves() {
+        let b = Board::init();
+        let p= Player::Black;
+        // Chequer existence
+        assert_eq!(b.validate_submove(&Submove::new(4, 3), p), Err("Chequer does not exist."));
+        // Chequer ownership
+        assert_eq!(b.validate_submove(&Submove::new(1, 3), p), Ok(false));
+        // TODO: Check bar
+        // TODO: Check moving onto an opponent's point
     }
 }

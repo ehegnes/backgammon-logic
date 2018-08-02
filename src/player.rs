@@ -1,11 +1,11 @@
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub enum Player {
     Black,
     White,
 }
 
 impl Player {
-    fn switch(&self) -> Player {
+    pub fn switch(&self) -> Player {
         match self {
             Player::White => Player::Black,
             Player::Black => Player::White,

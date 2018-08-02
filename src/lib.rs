@@ -7,9 +7,11 @@
 
 extern crate rand;
 
-pub mod game;
-pub mod player;
 pub mod board;
+pub mod constants;
+pub mod game;
+pub mod moves;
+pub mod player;
 
 #[no_mangle]
 pub extern fn rust_test_ffi(x: i32) -> i32 {
