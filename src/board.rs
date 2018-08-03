@@ -63,7 +63,7 @@ impl Board {
         }
     }
 
-    /// Returns a board that is counter-clockwise from the [`Player`](player/enum.Player.html).
+    /// Returns a board that is counter-clockwise from the [`Player`](../player/enum.Player.html).
     pub fn board(&self, p: Player) -> _Board {
         match p {
             Player::White => {
@@ -110,8 +110,9 @@ impl Board {
     }
 
     /// Return the pip count for the `Player`.
-    /// *TODO:* it would be nice to perform this functionally with `zip()` and `fold()`.
-    fn pips(&self, p: Player) -> u16 {
+    ///
+    /// TODO: it would be nice to perform this functionally with `zip()` and `fold()`.
+    pub fn pips(&self, p: Player) -> u16 {
         let mut count: u16 = 0;
         for (i, x) in self.board(p).iter().enumerate() {
             let i = BOARD_SIZE - i - 1;
