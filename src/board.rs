@@ -4,30 +4,30 @@ use constants::*;
 
 const INITIAL_BOARD: _Board = [
     None, // BAR_IDX
-    Some((2, Player::White)), // 1
+    Some((2, Player::Black)), // 1
     None, // 2
     None, // 3
     None, // 4
     None, // 5
-    Some((5, Player::Black)), // 6
+    Some((5, Player::White)), // 6
     None, // 7
-    Some((3, Player:: Black)), // 8
+    Some((3, Player:: White)), // 8
     None, // 9
     None, // 10
     None, // 11
-    Some((5, Player::White)), // 12
-    Some((5, Player::Black)), // 13
+    Some((5, Player::Black)), // 12
+    Some((5, Player::White)), // 13
     None, // 14
     None, // 15
     None, // 16
-    Some((3, Player::White)), // 17
+    Some((3, Player::Black)), // 17
     None, // 18
-    Some((5, Player::White)), // 19
+    Some((5, Player::Black)), // 19
     None, // 20
     None, // 21
     None, // 22
     None, // 23
-    Some((2, Player::Black)), // 24
+    Some((2, Player::White)), // 24
     None, // BEAR_OFF_IDX
 ];
 
@@ -41,9 +41,39 @@ pub struct Board {
 }
 
 impl Board {
+    /// Return a board setup as such:
+    /// ```
+    /// +12-11-10--9--8--7-----6--5--4--3--2--1---0+
+    /// | B  .  .  .  W  . | | W  .  .  .  .  B |  |
+    /// | B  .  .  .  W  . | | W  .  .  .  .  B |  |
+    /// | B  .  .  .  W  . | | W  .  .  .  .  . |  |
+    /// | B  .  .  .  .  . | | W  .  .  .  .  . |  |
+    /// | B  .  .  .  .  . | | W  .  .  .  .  . |  |
+    /// |                  | |                  |--|
+    /// | W  .  .  .  .  . | | B  .  .  .  .  . |  |
+    /// | W  .  .  .  .  . | | B  .  .  .  .  . |  |
+    /// | W  .  .  .  B  . | | B  .  .  .  .  . |  |
+    /// | W  .  .  .  B  . | | B  .  .  .  .  W |  |
+    /// | W  .  .  .  B  . | | B  .  .  .  .  W |  |
+    /// +13-14-15-16-17-18----19-20-21-22-23-24--25+
+    /// ```
     pub fn init() -> Board {
         Board {
             board: INITIAL_BOARD,
+        }
+    }
+
+    /// Returns a board that is counter-clockwise from the [`Player`](player/enum.Player.html).
+    pub fn get(&self, p: Player) -> Board {
+        Board {
+            board: match p {
+                Player::White => {
+                    let mut reversed_board = self.board;
+                    reversed_board.reverse();
+                    reversed_board
+                },
+                _ => self.board,
+            }
         }
     }
 
