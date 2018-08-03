@@ -1,5 +1,5 @@
 use player::Player;
-use moves::{Move, Submove};
+use moves::{Submove};
 use constants::*;
 
 const INITIAL_BOARD: _Board = [
@@ -32,7 +32,7 @@ const INITIAL_BOARD: _Board = [
 ];
 
 pub type Position = usize;
-type Point  = Option<(u8, Player)>;
+pub type Point  = Option<(u8, Player)>;
 type _Board = [Point; BOARD_SIZE];
 
 #[derive(Clone, Copy, Default)]
@@ -64,16 +64,14 @@ impl Board {
     }
 
     /// Returns a board that is counter-clockwise from the [`Player`](player/enum.Player.html).
-    pub fn get(&self, p: Player) -> Board {
-        Board {
-            board: match p {
-                Player::White => {
-                    let mut reversed_board = self.board;
-                    reversed_board.reverse();
-                    reversed_board
-                },
-                _ => self.board,
-            }
+    pub fn board(&self, p: Player) -> _Board {
+        match p {
+            Player::White => {
+                let mut reversed_board = self.board;
+                reversed_board.reverse();
+                reversed_board
+            },
+            _ => self.board,
         }
     }
 
@@ -110,6 +108,18 @@ impl Board {
            to_chequer.is_some() && to_chequer.unwrap().1 == p.switch() && to_chequer.unwrap().0 <= 1,
         ].iter().all(|x| *x))
     }
+
+    /// Return the pip count for the `Player`.
+    /// *TODO:* it would be nice to perform this functionally with `zip()` and `fold()`.
+    fn pips(&self, p: Player) -> u16 {
+        let mut count: u16 = 0;
+        for (i, x) in self.board(p).iter().enumerate() {
+            let i = BOARD_SIZE - i - 1;
+            let x = x.unwrap_or((0, p.switch()));
+            if x.1 == p { count += (x.0 as u16) * i as u16 }
+        }
+        count
+    }
 }
 
 #[cfg(test)]
@@ -126,5 +136,11 @@ mod tests {
         assert_eq!(b.validate_submove(&Submove::new(1, 3), p), Ok(false));
         // TODO: Check bar
         // TODO: Check moving onto an opponent's point
+    }
+
+    #[test]
+    fn check_pips() {
+        assert_eq!(Board::init().pips(Player::Black), 167);
+        assert_eq!(Board::init().pips(Player::White), 167);
     }
 }
