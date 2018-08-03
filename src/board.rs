@@ -77,8 +77,11 @@ impl Board {
         }
     }
 
-    pub fn apply_move(&self, _m: Move) -> Board {
-        Board::init()
+    pub fn apply_submove(&mut self, _s: Submove) -> () {
+        /* XXX: Fuck. How do we handle both bars without muddying the current data structures?
+         * `gnubg` uses two copies of the board. It would be nice to avoid that.
+         * `mmakowski/backgammon-model` uses dedicated counters for each bar.
+         */
     }
 
     /// Check if a submove is legal. Returns `true` if valid or `false` if invalid.
