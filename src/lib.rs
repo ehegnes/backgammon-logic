@@ -22,3 +22,8 @@ pub mod player;
 pub extern fn rust_test_ffi(x: i32) -> i32 {
     x+1
 }
+
+#[no_mangle]
+pub extern fn init_game() -> game::Game {
+    game::Game::init()
+}
