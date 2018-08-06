@@ -27,3 +27,8 @@ pub extern fn rust_test_ffi(x: i32) -> i32 {
 pub extern fn init_game() -> game::Game {
     game::Game::init()
 }
+
+#[no_mangle]
+pub extern fn init_player() -> player::Player {
+    player::Player::Black
+}

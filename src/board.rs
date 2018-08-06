@@ -1,6 +1,8 @@
 use constants::*;
 use moves::Submove;
 use player::Player;
+
+#[allow(unused_imports)]
 use std::str::FromStr;
 
 const INITIAL_BOARD: _Board = [
@@ -35,7 +37,8 @@ type _Point = (u8, Player);
 pub type Point  = Option<(_Point)>;
 type _Board = [Point; BOARD_SIZE];
 
-#[derive(Clone, Copy, Default)]
+#[repr(C)]
+#[derive(Clone, Copy)]
 pub struct Board {
     board: _Board,
     bar_black: u8,
