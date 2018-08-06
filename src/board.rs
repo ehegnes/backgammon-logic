@@ -1,9 +1,9 @@
-use player::Player;
-use moves::{Submove};
 use constants::*;
+use moves::Submove;
+use player::Player;
+use std::str::FromStr;
 
 const INITIAL_BOARD: _Board = [
-    None, // BAR_IDX
     Some((2, Player::Black)), // 1
     None, // 2
     None, // 3
@@ -28,38 +28,49 @@ const INITIAL_BOARD: _Board = [
     None, // 22
     None, // 23
     Some((2, Player::White)), // 24
-    None, // BEAR_OFF_IDX
 ];
 
 pub type Position = usize;
-pub type Point  = Option<(u8, Player)>;
+type _Point = (u8, Player);
+pub type Point  = Option<(_Point)>;
 type _Board = [Point; BOARD_SIZE];
 
 #[derive(Clone, Copy, Default)]
 pub struct Board {
     board: _Board,
+    bar_black: u8,
+    bar_white: u8,
 }
 
 impl Board {
     /// Return a board setup as such:
     /// ```
-    /// +12-11-10--9--8--7-----6--5--4--3--2--1---0+
-    /// | B  .  .  .  W  . | | W  .  .  .  .  B |  |
-    /// | B  .  .  .  W  . | | W  .  .  .  .  B |  |
-    /// | B  .  .  .  W  . | | W  .  .  .  .  . |  |
-    /// | B  .  .  .  .  . | | W  .  .  .  .  . |  |
-    /// | B  .  .  .  .  . | | W  .  .  .  .  . |  |
-    /// |                  | |                  |--|
-    /// | W  .  .  .  .  . | | B  .  .  .  .  . |  |
-    /// | W  .  .  .  .  . | | B  .  .  .  .  . |  |
-    /// | W  .  .  .  B  . | | B  .  .  .  .  . |  |
-    /// | W  .  .  .  B  . | | B  .  .  .  .  W |  |
-    /// | W  .  .  .  B  . | | B  .  .  .  .  W |  |
-    /// +13-14-15-16-17-18----19-20-21-22-23-24--25+
+    /// +11-10--9--8--7--6-----5--4--3--2--1--0-+
+    /// | B  .  .  .  W  . | | W  .  .  .  .  B |
+    /// | B  .  .  .  W  . | | W  .  .  .  .  B |
+    /// | B  .  .  .  W  . | | W  .  .  .  .  . |
+    /// | B  .  .  .  .  . | | W  .  .  .  .  . |
+    /// | B  .  .  .  .  . | | W  .  .  .  .  . |
+    /// |                  | |                  |
+    /// | W  .  .  .  .  . | | B  .  .  .  .  . |
+    /// | W  .  .  .  .  . | | B  .  .  .  .  . |
+    /// | W  .  .  .  B  . | | B  .  .  .  .  . |
+    /// | W  .  .  .  B  . | | B  .  .  .  .  W |
+    /// | W  .  .  .  B  . | | B  .  .  .  .  W |
+    /// +12-13-14-15-16-17----18-19-20-21-22-23-+
     /// ```
     pub fn init() -> Board {
         Board {
             board: INITIAL_BOARD,
+            bar_black: 0,
+            bar_white: 0,
+        }
+    }
+
+    pub fn bar(&self, p: Player) -> u8 {
+        match p {
+            Player::Black => self.bar_black,
+            _ => self.bar_white,
         }
     }
 
@@ -91,22 +102,43 @@ impl Board {
     /// - Check not moving onto an opponent's point
     pub fn validate_submove(&self, s: &Submove, p: Player) -> Result<bool, &str> {
         // Ensure chequer exists
-        let from_chequer = match self.board[s.from] {
-            Some(v) => v,
+        let chequer_exists = |x: Position| match self.board(p)[x] {
+            Some(_) => Ok(true),
             None    => return Err("Chequer does not exist."),
         };
 
-        let bar_point = self.board[BAR_IDX];
-        let to_chequer = self.board[s.to];
+        // Check chequer ownership
+        let owns_chequer = |x: Position| self.board(p)[x].unwrap().1 == p;
 
-        Ok([
-           // Check chequer ownership
-           from_chequer.1 == p,
-           // Check bar
-           bar_point.is_some() && (bar_point.unwrap().1 != p || s.from != BAR_IDX),
-           // Check not moving onto an opponent's point
-           to_chequer.is_some() && to_chequer.unwrap().1 == p.switch() && to_chequer.unwrap().0 <= 1,
-        ].iter().all(|x| *x))
+        // Check bar
+        let check_bar = self.bar(p) > 0;
+
+        // Check not moving onto an opponent's point
+        let check_moving_to_point = |t: Position|
+            self.board(p)[t].is_some() &&
+            self.board(p)[t].unwrap().1 != p &&
+            self.board(p)[t].unwrap().0 >= 2;
+
+        match s {
+            Submove::Enter { to } => {
+                Ok(check_moving_to_point(*to))
+            },
+            Submove::Move { from, to } => {
+                Ok(vec![
+                   chequer_exists(*from)?,
+                   owns_chequer(*from),
+                   check_bar,
+                   check_moving_to_point(*to),
+                ].iter().all(|x| *x))
+            },
+            Submove::BearOff { from } => {
+                Ok(vec![
+                   chequer_exists(*from)?,
+                   owns_chequer(*from),
+                   check_bar,
+                ].iter().all(|x| *x))
+            },
+        }
     }
 
     /// Return the pip count for the `Player`.
@@ -115,7 +147,7 @@ impl Board {
     pub fn pips(&self, p: Player) -> u16 {
         let mut count: u16 = 0;
         for (i, x) in self.board(p).iter().enumerate() {
-            let i = BOARD_SIZE - i - 1;
+            let i = BOARD_SIZE - i;
             let x = x.unwrap_or((0, p.switch()));
             if x.1 == p { count += (x.0 as u16) * i as u16 }
         }
@@ -129,12 +161,12 @@ mod tests {
 
     #[test]
     fn check_invalid_submoves() {
+        let p = Player::Black;
         let b = Board::init();
-        let p= Player::Black;
         // Chequer existence
-        assert_eq!(b.validate_submove(&Submove::new(4, 3), p), Err("Chequer does not exist."));
+        assert_eq!(b.validate_submove(&Submove::from_str("4/3").unwrap(), p), Err("Chequer does not exist."));
         // Chequer ownership
-        assert_eq!(b.validate_submove(&Submove::new(1, 3), p), Ok(false));
+        assert_eq!(b.validate_submove(&Submove::from_str("1/3").unwrap(), p), Ok(false));
         // TODO: Check bar
         // TODO: Check moving onto an opponent's point
     }
