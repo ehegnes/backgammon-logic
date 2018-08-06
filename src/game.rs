@@ -15,6 +15,7 @@ pub fn roll_dice(g: &mut Game) -> (u8, u8) {
     (roll_die(g), roll_die(g))
 }
 
+#[repr(C)]
 pub struct Game {
     board: Board,
     dice: Dice,
