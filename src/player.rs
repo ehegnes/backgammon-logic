@@ -1,3 +1,4 @@
+#[repr(C)]
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum Player {
     Black,

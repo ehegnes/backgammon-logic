@@ -2,45 +2,30 @@ use constants::*;
 use moves::Submove;
 use player::Player;
 
-#[allow(unused_imports)]
-use std::str::FromStr;
-
-const INITIAL_BOARD: _Board = [
-    Some((2, Player::Black)), // 1
-    None, // 2
-    None, // 3
-    None, // 4
-    None, // 5
-    Some((5, Player::White)), // 6
-    None, // 7
-    Some((3, Player:: White)), // 8
-    None, // 9
-    None, // 10
-    None, // 11
-    Some((5, Player::Black)), // 12
-    Some((5, Player::White)), // 13
-    None, // 14
-    None, // 15
-    None, // 16
-    Some((3, Player::Black)), // 17
-    None, // 18
-    Some((5, Player::Black)), // 19
-    None, // 20
-    None, // 21
-    None, // 22
-    None, // 23
-    Some((2, Player::White)), // 24
-];
-
 pub type Position = usize;
-type _Point = (u8, Player);
-pub type Point  = Option<(_Point)>;
-type _Board = [Point; BOARD_SIZE];
+pub type MaybePoint = Option<Point>;
+pub type InternalBoard = Vec<MaybePoint>;
 
 #[repr(C)]
 #[derive(Clone, Copy)]
+pub struct Point {
+    owner: Player,
+    count: u8,
+}
+
+impl Point {
+    pub fn new(owner: Player, count: u8) -> Point {
+        Point {
+            owner,
+            count,
+        }
+    }
+}
+
+#[repr(C)]
+#[derive(Clone)]
 pub struct Board {
-    board: _Board,
+    board: InternalBoard,
     bar_black: u8,
     bar_white: u8,
 }
@@ -63,8 +48,34 @@ impl Board {
     /// +12-13-14-15-16-17----18-19-20-21-22-23-+
     /// ```
     pub fn init() -> Board {
+        let initial_board = vec![
+            Some(Point { owner: Player::Black, count: 2 }), // 1
+            None, // 2
+            None, // 3
+            None, // 4
+            None, // 5
+            Some(Point { owner: Player::White, count: 5 }), // 6
+            None, // 7
+            Some(Point { owner: Player::White, count: 3 }), // 8
+            None, // 9
+            None, // 10
+            None, // 11
+            Some(Point { owner: Player::Black, count: 5 }), // 12
+            Some(Point { owner: Player::White, count: 5 }), // 13
+            None, // 14
+            None, // 15
+            None, // 16
+            Some(Point { owner: Player::Black, count: 3 }), // 17
+            None, // 18
+            Some(Point { owner: Player::Black, count: 5 }), // 19
+            None, // 20
+            None, // 21
+            None, // 22
+            None, // 23
+            Some(Point { owner: Player::White, count: 2 }), // 24
+            ];
         Board {
-            board: INITIAL_BOARD,
+            board: initial_board,
             bar_black: 0,
             bar_white: 0,
         }
@@ -78,14 +89,10 @@ impl Board {
     }
 
     /// Returns a board that is counter-clockwise from the [`Player`](../player/enum.Player.html).
-    pub fn board(&self, p: Player) -> _Board {
+    pub fn board(&self, p: Player) -> InternalBoard {
         match p {
-            Player::White => {
-                let mut reversed_board = self.board;
-                reversed_board.reverse();
-                reversed_board
-            },
-            _ => self.board,
+            Player::White => self.board.iter().rev().cloned().collect::<InternalBoard>(),
+            _ => self.board.clone(),
         }
     }
 
@@ -111,7 +118,7 @@ impl Board {
         };
 
         // Check chequer ownership
-        let owns_chequer = |x: Position| self.board(p)[x].unwrap().1 == p;
+        let owns_chequer = |x: Position| self.board(p)[x].unwrap().owner == p;
 
         // Check bar
         let check_bar = self.bar(p) > 0;
@@ -119,8 +126,8 @@ impl Board {
         // Check not moving onto an opponent's point
         let check_moving_to_point = |t: Position|
             self.board(p)[t].is_some() &&
-            self.board(p)[t].unwrap().1 != p &&
-            self.board(p)[t].unwrap().0 >= 2;
+            self.board(p)[t].unwrap().owner != p &&
+            self.board(p)[t].unwrap().count >= 2;
 
         match s {
             Submove::Enter { to } => {
@@ -147,12 +154,13 @@ impl Board {
     /// Return the pip count for the `Player`.
     ///
     /// TODO: it would be nice to perform this functionally with `zip()` and `fold()`.
-    pub fn pips(&self, p: Player) -> u16 {
+    pub fn pips(&mut self, p: Player) -> u16 {
         let mut count: u16 = 0;
         for (i, x) in self.board(p).iter().enumerate() {
             let i = BOARD_SIZE - i;
-            let x = x.unwrap_or((0, p.switch()));
-            if x.1 == p { count += (x.0 as u16) * i as u16 }
+            let or_point = Point::new(p.switch(), 0).clone();
+            let x = x.unwrap_or(or_point);
+            if x.owner == p { count += (x.count as u16) * i as u16 }
         }
         count
     }
@@ -161,6 +169,7 @@ impl Board {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::str::FromStr;
 
     #[test]
     fn check_invalid_submoves() {
