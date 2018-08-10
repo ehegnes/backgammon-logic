@@ -6,7 +6,6 @@ pub type Position = usize;
 pub type MaybePoint = Option<Point>;
 pub type InternalBoard = Vec<MaybePoint>;
 
-#[repr(C)]
 #[derive(Clone, Copy)]
 pub struct Point {
     pub owner: Player,
@@ -22,7 +21,6 @@ impl Point {
     }
 }
 
-#[repr(C)]
 #[derive(Clone)]
 pub struct Board {
     board: InternalBoard,

@@ -17,7 +17,6 @@ pub fn roll_dice() -> (u8, u8) {
     (roll_die(), roll_die())
 }
 
-#[repr(C)]
 #[derive(Clone)]
 pub struct Game {
     board: Board,
