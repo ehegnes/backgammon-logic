@@ -5,7 +5,7 @@ authors = ["Eric Hegnes <eric.hegnes@gmail.com>"]
 
 [lib]
 name = "backgammon_logic"
-crate-type = ["staticlib"]
+crate-type = ["rlib"]
 
 [dependencies]
 rand = "0.5"

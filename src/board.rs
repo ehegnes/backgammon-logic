@@ -9,8 +9,8 @@ pub type InternalBoard = Vec<MaybePoint>;
 #[repr(C)]
 #[derive(Clone, Copy)]
 pub struct Point {
-    owner: Player,
-    count: u8,
+    pub owner: Player,
+    pub count: u8,
 }
 
 impl Point {
