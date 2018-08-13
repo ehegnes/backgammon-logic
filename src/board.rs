@@ -4,7 +4,7 @@ use player::Player;
 
 pub type Position = usize;
 pub type MaybePoint = Option<Point>;
-pub type InternalBoard = Vec<MaybePoint>;
+pub type InternalBoard = [MaybePoint; BOARD_SIZE];
 
 #[derive(Clone, Copy)]
 pub struct Point {
@@ -20,6 +20,33 @@ impl Point {
         }
     }
 }
+
+pub const INITIAL_BOARD: [MaybePoint; BOARD_SIZE] = [
+    Some(Point { owner: Player::Black, count: 2 }), // 1
+    None, // 2
+    None, // 3
+    None, // 4
+    None, // 5
+    Some(Point { owner: Player::White, count: 5 }), // 6
+    None, // 7
+    Some(Point { owner: Player::White, count: 3 }), // 8
+    None, // 9
+    None, // 10
+    None, // 11
+    Some(Point { owner: Player::Black, count: 5 }), // 12
+    Some(Point { owner: Player::White, count: 5 }), // 13
+    None, // 14
+    None, // 15
+    None, // 16
+    Some(Point { owner: Player::Black, count: 3 }), // 17
+    None, // 18
+    Some(Point { owner: Player::Black, count: 5 }), // 19
+    None, // 20
+    None, // 21
+    None, // 22
+    None, // 23
+    Some(Point { owner: Player::White, count: 2 }), // 24
+    ];
 
 #[derive(Clone)]
 pub struct Board {
@@ -46,34 +73,8 @@ impl Board {
     /// +12-13-14-15-16-17----18-19-20-21-22-23-+
     /// ```
     pub fn init() -> Board {
-        let initial_board = vec![
-            Some(Point { owner: Player::Black, count: 2 }), // 1
-            None, // 2
-            None, // 3
-            None, // 4
-            None, // 5
-            Some(Point { owner: Player::White, count: 5 }), // 6
-            None, // 7
-            Some(Point { owner: Player::White, count: 3 }), // 8
-            None, // 9
-            None, // 10
-            None, // 11
-            Some(Point { owner: Player::Black, count: 5 }), // 12
-            Some(Point { owner: Player::White, count: 5 }), // 13
-            None, // 14
-            None, // 15
-            None, // 16
-            Some(Point { owner: Player::Black, count: 3 }), // 17
-            None, // 18
-            Some(Point { owner: Player::Black, count: 5 }), // 19
-            None, // 20
-            None, // 21
-            None, // 22
-            None, // 23
-            Some(Point { owner: Player::White, count: 2 }), // 24
-            ];
         Board {
-            board: initial_board,
+            board: INITIAL_BOARD,
             bar_black: 0,
             bar_white: 0,
         }
@@ -89,7 +90,11 @@ impl Board {
     /// Returns a board that is counter-clockwise from the [`Player`](../player/enum.Player.html).
     pub fn board(&self, p: Player) -> InternalBoard {
         match p {
-            Player::White => self.board.iter().rev().cloned().collect::<InternalBoard>(),
+            Player::White => {
+                let mut reversed_board = self.board;
+                reversed_board.reverse();
+                reversed_board
+            },
             _ => self.board.clone(),
         }
     }
