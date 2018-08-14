@@ -50,9 +50,9 @@ pub const INITIAL_BOARD: [MaybePoint; BOARD_SIZE] = [
 
 #[derive(Clone)]
 pub struct Board {
-    board: InternalBoard,
-    bar_black: u8,
-    bar_white: u8,
+    pub board: InternalBoard,
+    pub bar_black: u8,
+    pub bar_white: u8,
 }
 
 impl Board {
