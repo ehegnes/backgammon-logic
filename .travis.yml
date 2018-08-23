@@ -1,7 +1,20 @@
+sudo: required
 language: rust
 
 # Cache cargo symbols for faster build
-cache: cargo
+cache: cargo kcov
+
+# Dependencies of kcov, used by coverage
+addons:
+  apt:
+    packages:
+      - libcurl4-openssl-dev
+      - libelf-dev
+      - libdw-dev
+      - binutils-dev
+      - cmake # also required for cargo-update
+    sources:
+      - kalakris-cmake
 
 # run builds for all the trains (and more)
 rust:
@@ -20,5 +33,7 @@ script:
       cargo doc
 
 after_success:
+# measure code coverage and upload to coveralls.io
+  - cargo coveralls
 # upload documentation to github.io (gh-pages branch)
   - cargo doc-upload
