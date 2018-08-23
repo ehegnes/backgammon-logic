@@ -6,7 +6,7 @@ pub type Position = usize;
 pub type MaybePoint = Option<Point>;
 pub type InternalBoard = [MaybePoint; BOARD_SIZE];
 
-#[derive(Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Point {
     pub owner: Player,
     pub count: u8,
@@ -48,7 +48,7 @@ pub const INITIAL_BOARD: [MaybePoint; BOARD_SIZE] = [
     Some(Point { owner: Player::White, count: 2 }), // 24
     ];
 
-#[derive(Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Board {
     pub board: InternalBoard,
     pub bar_black: u8,
@@ -97,13 +97,6 @@ impl Board {
             },
             _ => self.board.clone(),
         }
-    }
-
-    pub fn apply_submove(&mut self, _s: Submove) -> () {
-        /* XXX: Fuck. How do we handle both bars without muddying the current data structures?
-         * `gnubg` uses two copies of the board. It would be nice to avoid that.
-         * `mmakowski/backgammon-model` uses dedicated counters for each bar.
-         */
     }
 
     /// Check if a submove is legal. Returns `true` if valid or `false` if invalid.

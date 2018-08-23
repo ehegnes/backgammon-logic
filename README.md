@@ -5,11 +5,10 @@ Backgammon Logic
 
 A Rust library for handling backgammon logic.
 
-## Testing
-```shell
-cargo test
-```
-
-## Documentation
-```shell
-cargo doc --open
+## Targets
+| Target     | Description                      |
+| ---------- | -------------------------------- |
+| `build`    | |
+| `test`     | |
+| `clean`    | |
+| `coverage` | Generate a local coverage report |

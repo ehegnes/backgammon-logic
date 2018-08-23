@@ -17,18 +17,3 @@ pub mod constants;
 pub mod game;
 pub mod moves;
 pub mod player;
-
-#[no_mangle]
-pub extern fn rust_test_ffi(x: i32) -> i32 {
-    x+1
-}
-
-#[no_mangle]
-pub extern fn init_game() -> game::Game {
-    game::Game::init()
-}
-
-#[no_mangle]
-pub extern fn init_player() -> player::Player {
-    player::Player::Black
-}
