@@ -2,7 +2,7 @@ sudo: required
 language: rust
 
 # Cache cargo symbols for faster build
-cache: cargo kcov
+cache: cargo
 
 # Dependencies of kcov, used by coverage
 addons:
