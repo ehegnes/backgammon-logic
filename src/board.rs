@@ -57,7 +57,7 @@ pub struct Board {
 
 impl Board {
     /// Return a board setup as such:
-    /// ```
+    /// ```markdown
     /// +11-10--9--8--7--6-----5--4--3--2--1--0-+
     /// | B  .  .  .  W  . | | W  .  .  .  .  B |
     /// | B  .  .  .  W  . | | W  .  .  .  .  B |
