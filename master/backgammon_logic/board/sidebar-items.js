@@ -1,0 +1,1 @@
+initSidebarItems({"constant":[["INITIAL_BOARD",""]],"struct":[["Board",""],["Point",""]],"type":[["InternalBoard",""],["MaybePoint",""],["Position",""]]});

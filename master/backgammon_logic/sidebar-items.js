@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["init_game",""],["init_player",""],["rust_test_ffi",""]],"mod":[["board",""],["constants",""],["game",""],["moves",""],["player",""]]});

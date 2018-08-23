@@ -1,0 +1,1 @@
+initSidebarItems({"constant":[["BOARD_SIZE",""]]});
