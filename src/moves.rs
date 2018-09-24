@@ -3,7 +3,7 @@ use std::str::FromStr;
 
 use board::Position;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Submove {
     Move { from: Position, to: Position },
     Enter { to: Position },
@@ -41,7 +41,7 @@ impl FromStr for Submove {
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Move {
     pub submoves: Vec<Submove>,
 }
