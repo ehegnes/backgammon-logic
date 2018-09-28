@@ -11,9 +11,9 @@ pub type Dice = (Die, Die);
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Game {
-    board: Board,
-    dice: Dice,
-    turn: Player,
+    pub board: Board,
+    pub dice: Dice,
+    pub turn: Player,
 }
 
 impl Game {
