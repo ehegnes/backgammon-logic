@@ -1,5 +1,5 @@
 use constants::*;
-use moves::Submove;
+use moves::{Move, Submove};
 use player::Player;
 
 pub type Position = usize;
@@ -107,6 +107,12 @@ impl Board {
     /// - Check bar
     /// - Check not moving onto an opponent's point
     pub fn validate_submove(&self, s: &Submove, p: Player) -> Result<bool, &str> {
+        // Is within board range
+        let within_range = |x: Position| match x <= BOARD_SIZE {
+            false => return Err(format!("Position {} not within range.", x)),
+            _ => Ok(true),
+        };
+
         // Ensure chequer exists
         let chequer_exists = |x: Position| match self.board(p)[x] {
             Some(_) => Ok(true),
@@ -114,10 +120,13 @@ impl Board {
         };
 
         // Check chequer ownership
-        let owns_chequer = |x: Position| self.board(p)[x].unwrap().owner == p;
+        let owns_chequer = |x: Position| match self.board(p)[x].unwrap().owner == p {
+            true => Ok(true),
+            _ => return Err(format!("Player {:?} does not own the chequer at position {}", p, x)),
+        };
 
         // Check bar
-        let check_bar = self.bar(p) > 0;
+        let check_bar = self.bar(p) > 0 || return Err("You must move the chequer on the bar, first.");
 
         // Check not moving onto an opponent's point
         let check_moving_to_point = |t: Position|
@@ -131,19 +140,35 @@ impl Board {
             },
             Submove::Move { from, to } => {
                 Ok(vec![
+                   within_range(*from).unwrap(),
+                   within_range(*to).unwrap(),
                    chequer_exists(*from)?,
-                   owns_chequer(*from),
+                   owns_chequer(*from).unwrap(),
                    check_bar,
                    check_moving_to_point(*to),
                 ].iter().all(|x| *x))
             },
             Submove::BearOff { from } => {
                 Ok(vec![
+                   within_range(*from).unwrap(),
                    chequer_exists(*from)?,
-                   owns_chequer(*from),
+                   owns_chequer(*from).unwrap(),
                    check_bar,
                 ].iter().all(|x| *x))
             },
+        }
+    }
+
+    pub fn validate_move(&self, m: &Move, p: Player) -> bool {
+        let r: Result<Vec<bool>, &str> = m
+            .submoves
+            .iter()
+            .map(|s| self.validate_submove(s, p))
+            .collect();
+
+        match r {
+            Ok(_) => true,
+            _ => false,
         }
     }
 
