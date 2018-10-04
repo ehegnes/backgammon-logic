@@ -34,7 +34,6 @@ pub fn roll_dice() -> Dice {
     (roll_die(), roll_die())
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -42,11 +41,14 @@ mod tests {
     #[test]
     fn test_game() {
         let game = Game::init();
-        assert_eq!(game, Game {
-            board: Board::init(),
-            dice: (0, 0).into(),
-            turn: Player::White,
-        })
+        assert_eq!(
+            game,
+            Game {
+                board: Board::init(),
+                dice: (0, 0).into(),
+                turn: Player::White,
+            }
+        )
     }
     #[test]
     fn test_roll_die() {

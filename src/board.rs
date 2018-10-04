@@ -14,39 +14,60 @@ pub struct Point {
 
 impl Point {
     pub fn new(owner: Player, count: u8) -> Point {
-        Point {
-            owner,
-            count,
-        }
+        Point { owner, count }
     }
 }
 
 pub const INITIAL_BOARD: [MaybePoint; BOARD_SIZE] = [
-    Some(Point { owner: Player::Black, count: 2 }), // 1
+    Some(Point {
+        owner: Player::Black,
+        count: 2,
+    }), // 1
     None, // 2
     None, // 3
     None, // 4
     None, // 5
-    Some(Point { owner: Player::White, count: 5 }), // 6
+    Some(Point {
+        owner: Player::White,
+        count: 5,
+    }), // 6
     None, // 7
-    Some(Point { owner: Player::White, count: 3 }), // 8
+    Some(Point {
+        owner: Player::White,
+        count: 3,
+    }), // 8
     None, // 9
     None, // 10
     None, // 11
-    Some(Point { owner: Player::Black, count: 5 }), // 12
-    Some(Point { owner: Player::White, count: 5 }), // 13
+    Some(Point {
+        owner: Player::Black,
+        count: 5,
+    }), // 12
+    Some(Point {
+        owner: Player::White,
+        count: 5,
+    }), // 13
     None, // 14
     None, // 15
     None, // 16
-    Some(Point { owner: Player::Black, count: 3 }), // 17
+    Some(Point {
+        owner: Player::Black,
+        count: 3,
+    }), // 17
     None, // 18
-    Some(Point { owner: Player::Black, count: 5 }), // 19
+    Some(Point {
+        owner: Player::Black,
+        count: 5,
+    }), // 19
     None, // 20
     None, // 21
     None, // 22
     None, // 23
-    Some(Point { owner: Player::White, count: 2 }), // 24
-    ];
+    Some(Point {
+        owner: Player::White,
+        count: 2,
+    }), // 24
+];
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Board {
@@ -94,7 +115,7 @@ impl Board {
                 let mut reversed_board = self.board;
                 reversed_board.reverse();
                 reversed_board
-            },
+            }
             _ => self.board.clone(),
         }
     }
@@ -116,46 +137,49 @@ impl Board {
         // Ensure chequer exists
         let chequer_exists = |x: Position| match self.board(p)[x] {
             Some(_) => Ok(true),
-            None    => return Err("Chequer does not exist."),
+            None => return Err("Chequer does not exist."),
         };
 
         // Check chequer ownership
         let owns_chequer = |x: Position| match self.board(p)[x].unwrap().owner == p {
             true => Ok(true),
-            _ => return Err(format!("Player {:?} does not own the chequer at position {}", p, x)),
+            _ => {
+                return Err(format!(
+                    "Player {:?} does not own the chequer at position {}",
+                    p, x
+                ))
+            }
         };
 
         // Check bar
-        let check_bar = self.bar(p) > 0 || return Err("You must move the chequer on the bar, first.");
+        let check_bar =
+            self.bar(p) > 0 || return Err("You must move the chequer on the bar, first.");
 
         // Check not moving onto an opponent's point
-        let check_moving_to_point = |t: Position|
-            self.board(p)[t].is_some() &&
-            self.board(p)[t].unwrap().owner != p &&
-            self.board(p)[t].unwrap().count >= 2;
+        let check_moving_to_point = |t: Position| {
+            self.board(p)[t].is_some()
+                && self.board(p)[t].unwrap().owner != p
+                && self.board(p)[t].unwrap().count >= 2
+        };
 
         match s {
-            Submove::Enter { to } => {
-                Ok(check_moving_to_point(*to))
-            },
-            Submove::Move { from, to } => {
-                Ok(vec![
-                   within_range(*from).unwrap(),
-                   within_range(*to).unwrap(),
-                   chequer_exists(*from)?,
-                   owns_chequer(*from).unwrap(),
-                   check_bar,
-                   check_moving_to_point(*to),
-                ].iter().all(|x| *x))
-            },
-            Submove::BearOff { from } => {
-                Ok(vec![
-                   within_range(*from).unwrap(),
-                   chequer_exists(*from)?,
-                   owns_chequer(*from).unwrap(),
-                   check_bar,
-                ].iter().all(|x| *x))
-            },
+            Submove::Enter { to } => Ok(check_moving_to_point(*to)),
+            Submove::Move { from, to } => Ok(vec![
+                within_range(*from).unwrap(),
+                within_range(*to).unwrap(),
+                chequer_exists(*from)?,
+                owns_chequer(*from).unwrap(),
+                check_bar,
+                check_moving_to_point(*to),
+            ].iter()
+            .all(|x| *x)),
+            Submove::BearOff { from } => Ok(vec![
+                within_range(*from).unwrap(),
+                chequer_exists(*from)?,
+                owns_chequer(*from).unwrap(),
+                check_bar,
+            ].iter()
+            .all(|x| *x)),
         }
     }
 
@@ -181,7 +205,9 @@ impl Board {
             let i = BOARD_SIZE - i;
             let or_point = Point::new(p.switch(), 0).clone();
             let x = x.unwrap_or(or_point);
-            if x.owner == p { count += (x.count as u16) * i as u16 }
+            if x.owner == p {
+                count += (x.count as u16) * i as u16
+            }
         }
         count
     }
@@ -197,9 +223,15 @@ mod tests {
         let p = Player::Black;
         let b = Board::init();
         // Chequer existence
-        assert_eq!(b.validate_submove(&Submove::from_str("4/3").unwrap(), p), Err("Chequer does not exist."));
+        assert_eq!(
+            b.validate_submove(&Submove::from_str("4/3").unwrap(), p),
+            Err("Chequer does not exist.")
+        );
         // Chequer ownership
-        assert_eq!(b.validate_submove(&Submove::from_str("1/3").unwrap(), p), Ok(false));
+        assert_eq!(
+            b.validate_submove(&Submove::from_str("1/3").unwrap(), p),
+            Ok(false)
+        );
         // TODO: Check bar
         // TODO: Check moving onto an opponent's point
     }
